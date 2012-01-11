@@ -66,10 +66,16 @@ namespace fpio {
     // and access directly the other end.
     //
     struct disk_map {
-        char            cBufferOut[SZ_FLOPPY/2-1];
-        char            cBufferIn[SZ_FLOPPY/2-1];
-        fpio_ctlbyte    bControlOut;
-        fpio_ctlbyte    bControlIn;
+        char            cBufferOut[SZ_FLOPPY/2-2];
+        char            cBufferIn[SZ_FLOPPY/2-2];
+        union {
+            unsigned char   value;
+            fpio_ctlbyte    flags;
+        } bControlOut;
+        union {
+            unsigned char   value;
+            fpio_ctlbyte    flags;
+        } bControlIn;
     };
 
     class disk: public errorbase {

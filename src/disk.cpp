@@ -38,6 +38,8 @@ using namespace fpio;
 using namespace std;
 
 disk::disk(const char * file, int flags) {
+    int iRes;
+
     // Use exceptions
     this->useExceptions=true;
     this->clear();
@@ -48,7 +50,7 @@ disk::disk(const char * file, int flags) {
     if ((flags & fpio::O_DEVICE)==0) {
 
         // Create file if missing
-        if ((flags & fpio::O_CREATE)!=0) oflags |= O_CREAT;
+        if ((flags & fpio::O_CREATE)!=0) oflags |= O_CREAT | O_TRUNC;
         
     } else {
 
@@ -59,20 +61,37 @@ disk::disk(const char * file, int flags) {
 
     }
 
-
     // Open the file
-    this->fd = open(file, oflags);
+    this->fd = open(file, oflags, (mode_t)0600);
     if (this->fd<0) {
         this->setError(strerror(errno), ERR_IO);
         this->setError("Unable to open the floppy file", ERR_IO, 2);
         return;
     }
 
-    // Check if we have to reset this file
-    if ((flags & fpio::O_NORESET)==0) this->reset();
+    // Make sure file is long enough
+    int fSize = lseek(this->fd, 0, SEEK_END);
+    if (fSize < SZ_FLOPPY) {
+
+        // Go to the end
+        iRes=lseek(this->fd, SZ_FLOPPY-1, SEEK_SET);
+        if (iRes == -1) {
+            this->setError(strerror(errno), ERR_IO);
+            this->setError("Unable to stretch floppy file", ERR_IO, 2);
+            return;
+        }
+
+        // And write one byte to stretch it
+        iRes=write(this->fd, "", 1);
+        if (iRes != 1) {
+            this->setError(strerror(errno), ERR_IO);
+            this->setError("Unable to stretch floppy file", ERR_IO, 2);
+            return;
+        }
+    }
 
     // Map FD
-    this->map = (disk_map*) mmap(0, SZ_FLOPPY, PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, 0);
+    this->map = (disk_map*) mmap(NULL, SZ_FLOPPY, PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, 0);
     if (this->map == MAP_FAILED) {
         close(this->fd);
         this->fd=0;
@@ -81,20 +100,20 @@ disk::disk(const char * file, int flags) {
         return;
     }
 
-    // Allocate the map
-    this->map = new disk_map;
+    // Check if we have to reset this file
+    if ((flags & fpio::O_NORESET)==0) this->reset();
 
 };
 
 void disk::reset() {
     if (!this->ready()) return;
-    memset(&this->map, 0, SZ_FLOPPY);
+    memset(this->map, 0, SZ_FLOPPY);
     this->sync();
 };
 
 void disk::sync() {
     if (!this->ready()) return;
-    msync(&this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
+    msync(this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
 };
 
 bool disk::ready() {
