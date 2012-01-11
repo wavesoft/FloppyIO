@@ -118,7 +118,7 @@ void disk::reset() {
 
 void disk::sync() {
     if (!this->ready()) return;
-    msync(this->map, SZ_FLOPPY, MS_SYNC);
+    msync(this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
 #if defined __linux__
     if (this->useDevice) {
         if (ioctl(this->fd, FDFLUSH, 0)!=0) {
@@ -129,6 +129,30 @@ void disk::sync() {
 #endif
 
 };
+
+void disk::update() {
+    if (!this->ready()) return;
+#if defined __linus__
+    if (this->useDevice) {
+        floppy_drive_params fdp;
+        if (ioctl(this->fd, FDGETDRVPRM, &fdp)!=0) {
+            this->setError("Unable to get floppy parameters",strerror(errno), ERR_IO, 2);
+            return;
+        }
+
+        cout << "Checking disk every: " << fdp.checkfreq << "\n";
+        cout << "Flags: " << (int)fdp.flags << "\n";
+
+        // Make floppy think something changed
+        fdp.flags |= FD_DISK_CHANGED_BIT;
+        if (ioctl(this->fd, FDSETDRVPRM, &fdp)!=0) {
+            this->setError("Unable to update floppy parameters",strerror(errno), ERR_IO, 2);
+            return;
+        }
+        
+    }
+#endif
+}
 
 bool disk::ready() {
     if (this->fd<=0) return false;
