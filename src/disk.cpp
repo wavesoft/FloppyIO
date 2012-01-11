@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <string.h>
 
 #include "../includes/disk.h"
 
@@ -40,36 +41,43 @@ disk::disk(const char * file, int flags) {
     // Use exceptions
     this->useExceptions=true;
     this->clear();
+    this->fd=0;
 
     // Prepare the open flags
     int oflags = O_RDWR | O_SYNC;
     if ((flags & fpio::O_DEVICE)==0) {
+
+        // Create file if missing
         if ((flags & fpio::O_CREATE)!=0) oflags |= O_CREAT;
+        
+    } else {
+
+        // Avoid buffering when accessing the block device
+        #ifdef _GNU_SOURCE
+        oflags |= O_DIRECT; // Non-posix
+        #endif
+
     }
 
-    // Avoid double caching where possible
-    #ifdef _GNU_SOURCE
-    oflags |= O_DIRECT; // Non-posix
-    #endif
 
     // Open the file
-    int fd = open(file, oflags);
-    if (fd<0) {
+    this->fd = open(file, oflags);
+    if (this->fd<0) {
         this->setError(strerror(errno), ERR_IO);
-        this->setError("Unable to open the specified file", ERR_IO);
+        this->setError("Unable to open the floppy file", ERR_IO, 2);
         return;
     }
-    this->fd = fd;
 
     // Check if we have to reset this file
     if ((flags & fpio::O_NORESET)==0) this->reset();
 
     // Map FD
-    this->map = (disk_map*) mmap(0, SZ_FLOPPY, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    this->map = (disk_map*) mmap(0, SZ_FLOPPY, PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, 0);
     if (this->map == MAP_FAILED) {
-        close(fd);
+        close(this->fd);
+        this->fd=0;
         this->setError(strerror(errno), ERR_IO);
-        this->setError("Unable to map memory region", ERR_IO);
+        this->setError("Unable to map memory region", ERR_IO, 2);
         return;
     }
 
@@ -79,12 +87,19 @@ disk::disk(const char * file, int flags) {
 };
 
 void disk::reset() {
-    memset(this->map, 0, SZ_FLOPPY);
+    if (!this->ready()) return;
+    memset(&this->map, 0, SZ_FLOPPY);
     this->sync();
 };
 
 void disk::sync() {
-    msync(this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
+    if (!this->ready()) return;
+    msync(&this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
+};
+
+bool disk::ready() {
+    if (this->fd<=0) return false;
+    return errorbase::ready();
 };
 
 disk::~disk() {

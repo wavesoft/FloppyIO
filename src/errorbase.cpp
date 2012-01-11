@@ -39,7 +39,7 @@ static ioexception   __FloppyIOExceptionSingleton;
 // @param   message The error message
 // @return          The error code
 //
-int  errorbase::setError(const string message, int code) {
+int  errorbase::setError(const string message, int code, int level) {
     this->errorCode = code;
 
     // Chain errors
@@ -50,9 +50,11 @@ int  errorbase::setError(const string message, int code) {
     }
 
     // Should we raise an exception?
-    if (this->useExceptions) 
-        throw *__FloppyIOExceptionSingleton.set(code, message);
-
+    if (level > 1) {
+        if (this->useExceptions) 
+            throw *__FloppyIOExceptionSingleton.set(this->errorCode, this->errorStr);
+    }
+    
     // Otherwise return code
     // (Useful for using single-lined: return this->setError(-1, "message..');
     return code;

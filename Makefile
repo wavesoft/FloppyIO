@@ -1,4 +1,5 @@
+CPPFLAGS=-g -O2
 
 test: test.cpp src/disk.o src/errorbase.o
-	g++ -o test src/disk.o src/errorbase.o test.cpp
+	g++ $(CPPFLAGS) -o test src/disk.o src/errorbase.o test.cpp
 

@@ -50,7 +50,7 @@ namespace fpio {
     // to synchronize the I/O in case of large ammount of
     // data being exchanged.
     //
-    typedef struct fpio_ctlbyte {
+    struct fpio_ctlbyte {
         unsigned short bDataPresent   : 1;
         unsigned short bEndOfData     : 1;
         unsigned short bLengthPrefix  : 1;
@@ -65,7 +65,7 @@ namespace fpio {
     // specified. It tries to override system caching
     // and access directly the other end.
     //
-    typedef struct disk_map {
+    struct disk_map {
         char            cBufferOut[SZ_FLOPPY/2-1];
         char            cBufferIn[SZ_FLOPPY/2-1];
         fpio_ctlbyte    bControlOut;
@@ -82,6 +82,7 @@ namespace fpio {
         // Utility functions
         void                reset();
         void                sync();
+        virtual bool        ready();
 
         // Memory map
         disk_map *          map;
