@@ -32,6 +32,10 @@
 #include <errno.h>
 #include <string.h>
 
+#if defined __linux__
+#include <linux/fd.h>
+#endif
+
 #include "../includes/disk.h"
 
 using namespace fpio;
@@ -44,6 +48,7 @@ disk::disk(const char * file, int flags) {
     this->useExceptions=true;
     this->clear();
     this->fd=0;
+    this->useDevice=false;
 
     // Prepare the open flags
     int oflags = O_RDWR | O_SYNC;
@@ -58,6 +63,9 @@ disk::disk(const char * file, int flags) {
         #ifdef _GNU_SOURCE
         oflags |= O_DIRECT; // Non-posix
         #endif
+
+        // Enable device access
+        this->useDevice=true;
 
     }
 
@@ -114,6 +122,12 @@ void disk::reset() {
 void disk::sync() {
     if (!this->ready()) return;
     msync(this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
+#if defined __linux__
+    if (this->useDevice) {
+        ioctl(this->fd, FDFLUSH, 0);
+    }
+#endif
+
 };
 
 bool disk::ready() {

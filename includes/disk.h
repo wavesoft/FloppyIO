@@ -78,7 +78,17 @@ namespace fpio {
         } bControlIn;
     };
 
-    class disk: public errorbase {
+
+    //
+    // Disk I/O Class
+    //
+    // This class provides the required I/O interface with the floppy disk
+    // file or block device. It provides a memory-mapped structure with 
+    // real-time communication with the other end.
+    //
+    class disk: 
+        public errorbase 
+    {
     public:
 
         // Constructor/Destructor
@@ -95,7 +105,8 @@ namespace fpio {
 
     private:
 
-        int     fd;         // File descriptor
+        int                 fd;         // File descriptor
+        bool                useDevice;  // Use device I/O (ioctl when needed) instead of file I/O
             
     };
 
