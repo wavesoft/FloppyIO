@@ -64,6 +64,7 @@ namespace fpio {
 
         // Trigger an error 
         int         setError(const string message, int code, int level=0);
+        int         setError(const string message, const string details, int code, int level=0);
 
     };
 

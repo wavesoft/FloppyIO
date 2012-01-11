@@ -33,6 +33,7 @@
 #include <string.h>
 
 #if defined __linux__
+#include <sys/ioctl.h>
 #include <linux/fd.h>
 #endif
 
@@ -72,8 +73,7 @@ disk::disk(const char * file, int flags) {
     // Open the file
     this->fd = open(file, oflags, (mode_t)0600);
     if (this->fd<0) {
-        this->setError(strerror(errno), ERR_IO);
-        this->setError("Unable to open the floppy file", ERR_IO, 2);
+        this->setError("Unable to open the floppy file", strerror(errno), ERR_IO, 2);
         return;
     }
 
@@ -84,16 +84,14 @@ disk::disk(const char * file, int flags) {
         // Go to the end
         iRes=lseek(this->fd, SZ_FLOPPY-1, SEEK_SET);
         if (iRes == -1) {
-            this->setError(strerror(errno), ERR_IO);
-            this->setError("Unable to stretch floppy file", ERR_IO, 2);
+            this->setError("Unable to stretch floppy file",strerror(errno), ERR_IO, 2);
             return;
         }
 
         // And write one byte to stretch it
         iRes=write(this->fd, "", 1);
         if (iRes != 1) {
-            this->setError(strerror(errno), ERR_IO);
-            this->setError("Unable to stretch floppy file", ERR_IO, 2);
+            this->setError("Unable to stretch floppy file",strerror(errno), ERR_IO, 2);
             return;
         }
     }
@@ -103,8 +101,7 @@ disk::disk(const char * file, int flags) {
     if (this->map == MAP_FAILED) {
         close(this->fd);
         this->fd=0;
-        this->setError(strerror(errno), ERR_IO);
-        this->setError("Unable to map memory region", ERR_IO, 2);
+        this->setError("Unable to map memory region",strerror(errno), ERR_IO, 2);
         return;
     }
 
@@ -121,10 +118,13 @@ void disk::reset() {
 
 void disk::sync() {
     if (!this->ready()) return;
-    msync(this->map, SZ_FLOPPY, MS_SYNC | MS_INVALIDATE);
+    msync(this->map, SZ_FLOPPY, MS_SYNC);
 #if defined __linux__
     if (this->useDevice) {
-        ioctl(this->fd, FDFLUSH, 0);
+        if (ioctl(this->fd, FDFLUSH, 0)!=0) {
+            this->setError("Unable to use hardware sync on floppy",strerror(errno), ERR_IO, 2);
+            return;
+        }
     }
 #endif
 

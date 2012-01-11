@@ -51,11 +51,11 @@ namespace fpio {
     // data being exchanged.
     //
     struct fpio_ctlbyte {
-        unsigned short bDataPresent   : 1;
-        unsigned short bEndOfData     : 1;
-        unsigned short bLengthPrefix  : 1;
-        unsigned short bAborted       : 1;
-        unsigned short usID           : 4;
+        unsigned char bDataPresent   : 1;
+        unsigned char bEndOfData     : 1;
+        unsigned char bLengthPrefix  : 1;
+        unsigned char bAborted       : 1;
+        unsigned char usID           : 4;
     };
 
     // 
@@ -66,8 +66,8 @@ namespace fpio {
     // and access directly the other end.
     //
     struct disk_map {
-        char            cBufferOut[SZ_FLOPPY/2-2];
-        char            cBufferIn[SZ_FLOPPY/2-2];
+        char            cBufferOut[SZ_FLOPPY/2-1];
+        char            cBufferIn[SZ_FLOPPY/2-1];
         union {
             unsigned char   value;
             fpio_ctlbyte    flags;

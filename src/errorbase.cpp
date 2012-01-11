@@ -40,13 +40,27 @@ static ioexception   __FloppyIOExceptionSingleton;
 // @return          The error code
 //
 int  errorbase::setError(const string message, int code, int level) {
+    static const string BLNK="";
+    return this->setError(message, BLNK, code, level);
+}
+
+//
+// Set last error.
+// This is a short-hand function to update the error variables.
+//
+// @param   code    The error code
+// @param   message The error message
+// @param   details More details considering this error
+// @return          The error code
+//
+int  errorbase::setError(const string message, const string details, int code, int level) {
     this->errorCode = code;
 
     // Chain errors
     if (this->errorStr.empty()) {
-        this->errorStr = message;
+        this->errorStr = message + (!details.empty()?(" ["+details+"]"):"");
     } else {
-        this->errorStr = message + " (" + this->errorStr + ")";
+        this->errorStr = message +  (!details.empty()?(" ["+details+"]"):"")  + " (" + this->errorStr + ")";
     }
 
     // Should we raise an exception?
