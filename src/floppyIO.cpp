@@ -208,7 +208,7 @@ int floppyIO::send(istream * stream, unsigned short id) {
         rd = stream->gcount();
 
         // Check status
-        if (stream->eof() || (stream->tellg() < 0)) {
+        if (stream->eof()) {
             // EOF? Mark end-of-data on the current block
             outCB.bEndOfData = 1;
             outCB.bAborted = 0;
