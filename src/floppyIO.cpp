@@ -144,7 +144,12 @@ int floppyIO::receive(char * buffer, int size, int streamID) {
     if (lRet<0) return lRet;
 
     // Locate the end of the data
-    
+    if (this->useExtended) {
+        get_in_xhdr(&inHDR);
+        lRet = inHDR.szLength;
+    } else {
+        lRet = strlen(buffer);
+    }
 
     // Return the bytes sent
     return lRet;
