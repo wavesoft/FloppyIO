@@ -63,10 +63,6 @@ int floppyIO::waitForSyncIn(unsigned short streamID, int timeout) {
     // Get last status of inCB
     this->get_in_cb(&inCB);
 
-    // Reset dataPresent
-    inCB.bDataPresent=0;
-    this->set_in_cb(&inCB);
-
     // Wait until expired, error, or forever.
     while (((timeout == 0) || ( time(NULL) <= tExpired)) && (lRet == ERR_NONE)) {
 
