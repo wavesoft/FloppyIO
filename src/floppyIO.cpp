@@ -59,14 +59,24 @@ int floppyIO::waitForSyncIn(unsigned short streamID, int timeout) {
     int lRet = ERR_NONE;
     time_t tExpired = time (NULL) + timeout;
 
+    // Get last status of inCB
+    this->get_in_cb(&inCB);
+
+    // Reset dataPresent
+    inCB.bDataPresent=0;
+    this->set_in_cb(&inCB);
+
     // Wait until expired, error, or forever.
     while ((timeout == 0) || ( time(NULL) <= tExpired) || (lRet != ERR_NONE)) {
-        this->get_in_cb(&inCB);
 
         // Wait until we have data available
         if (inCB.bDataPresent != 0) {
             if (inCB.sID == streamID) break; // If the streamID matches the one specified, quit
         }
+
+        // Update inCB
+        lRet = this->get_in_cb(&inCB);
+
     }
 
     return lRet;    
@@ -81,11 +91,11 @@ int floppyIO::waitForSyncOut(unsigned short streamID, int timeout) {
 
     // Wait until expired, error, or forever.
     while ((timeout == 0) || ( time(NULL) <= tExpired) || (lRet != ERR_NONE)) {
-        this->get_out_cb(&inCB);
+        lRet = this->get_out_cb(&outCB);
 
         // Wait until we have data available
-        if (inCB.bDataPresent == 0) {
-            if (inCB.sID == streamID) break; // If the streamID matches the one specified, quit
+        if (outCB.bDataPresent == 0) {
+            if (outCB.sID == streamID) break; // If the streamID matches the one specified, quit
         }
     }
 
@@ -150,6 +160,10 @@ int floppyIO::receive(char * buffer, int size, int streamID) {
     } else {
         lRet = strlen(buffer);
     }
+
+    // Data are no more present
+    inCB.bDataPresent=0;
+    set_cb_in(&inCB);
 
     // Return the bytes sent
     return lRet;

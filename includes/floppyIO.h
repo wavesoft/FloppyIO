@@ -51,7 +51,7 @@ namespace fpio {
     // FloppyIO Class
     //
     class floppyIO:
-        protected flpdisk 
+        public flpdisk 
     {
     public:
 
