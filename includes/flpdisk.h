@@ -70,8 +70,8 @@ namespace fpio {
         SZ_FLOPPY/2+2,  // ofsBufferOut
         
         1,              // szControlByte   Control byte is a byte (Duh!)
-        SZ_FLOPPY/2,    // szBufferIn      Half of the block goes to input
-        SZ_FLOPPY/2     // szBufferOut     The other half goes to output
+        SZ_FLOPPY/2-1,  // szBufferIn      Half of the block goes to input
+        SZ_FLOPPY/2-1   // szBufferOut     The other half goes to output
     };
     
     //
