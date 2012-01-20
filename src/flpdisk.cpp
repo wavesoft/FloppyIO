@@ -319,7 +319,7 @@ int flpdisk::get_out_cb(ctrlbyte * cb) {
     if (!this->ready()) return ERR_NOTREADY;
 
     // Seek to the input control byte
-    if (lseek(this->fd, this->layout.ofsControlIn, SEEK_SET) == -1)
+    if (lseek(this->fd, this->layout.ofsControlOut, SEEK_SET) == -1)
         return this->setError("Unable to read output control byte",strerror(errno), ERR_IO, ERL_ERROR);
 
     // Try to read input
@@ -361,7 +361,7 @@ int flpdisk::set_out_cb(ctrlbyte * cb) {
     if (!this->ready()) return ERR_NOTREADY;
 
     // Seek to the input control byte
-    if (lseek(this->fd, this->layout.ofsControlIn, SEEK_SET) == -1)
+    if (lseek(this->fd, this->layout.ofsControlOut, SEEK_SET) == -1)
         return this->setError("Unable to write output control byte",strerror(errno), ERR_IO, ERL_ERROR);
 
     // Try to read input
