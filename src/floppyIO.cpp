@@ -233,9 +233,11 @@ int floppyIO::send(istream * stream, unsigned short id) {
         }
 
         // Count bytes written
-        lRet = this->send(inBuffer, rd, id);
-        if (lRet<0) return lRet; // Error occured
-        
+        if (rd > 0) {
+            lRet = this->send(inBuffer, rd, id);
+            if (lRet<0) return lRet; // Error occured
+        }
+                
         sentLength+=lRet;
 
     }
@@ -276,11 +278,11 @@ int floppyIO::receive(ostream * stream, unsigned short id) {
         }
 
         // Check if stream was aborted or finished
-        if (inCB.bAborted != 0) {
+        if (inCB.bAborted == 1) {
             stream->setstate(ostream::badbit | ostream::eofbit);
             break;
             
-        } else if (inCB.bEndOfData != 0) {
+        } else if (inCB.bEndOfData == 1) {
             stream->setstate(ostream::eofbit);
             break;
         }
