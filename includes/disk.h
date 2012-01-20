@@ -30,8 +30,8 @@
 
 namespace fpio {
 
-    // The size of the floppy disk
-    const int   SZ_FLOPPY = 28672;
+    // The size of the floppy disk (1.44Mb)
+    const int   SZ_FLOPPY = 1474560;
 
     // Flags for the fpio::disk constructor
     const int   O_DEVICE = 1;     // The file is a device and not a normal file
@@ -66,7 +66,6 @@ namespace fpio {
     // and access directly the other end.
     //
     struct disk_map {
-        char            cBufferOut[SZ_FLOPPY/2-1];
         char            cBufferIn[SZ_FLOPPY/2-1];
         union {
             unsigned char   value;
@@ -76,6 +75,7 @@ namespace fpio {
             unsigned char   value;
             fpio_ctlbyte    flags;
         } bControlIn;
+        char            cBufferOut[SZ_FLOPPY/2-1];
     };
 
 
@@ -98,6 +98,7 @@ namespace fpio {
         // Utility functions
         void                reset();
         void                sync();
+        void                update();
         virtual bool        ready();
 
         // Memory map

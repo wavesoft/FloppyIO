@@ -43,6 +43,12 @@ namespace fpio {
     const int   ERR_NOTREADY    = -4;       // The I/O object is not ready
     const int   ERR_INPUT       = -5;       // An error occured while processing ipnut
     const int   ERR_ABORTED     = -6;       // Operation aborted
+    const int   ERR_INVALID     = -7;       // Invalid usage
+
+    // Error levels
+    const int   ERL_MINOR       = 1;        // Minor error    : Does not raise exceptions
+    const int   ERL_ERROR       = 2;        // Normal error   : Raises exception
+    const int   ERL_CRITICAL    = 3;        // Critical error : Raises exception, needs to stop execution
 
     //
     // Base class that provides error reporting functionality

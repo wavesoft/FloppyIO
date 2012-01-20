@@ -132,7 +132,7 @@ void disk::sync() {
 
 void disk::update() {
     if (!this->ready()) return;
-#if defined __linus__
+#if defined __linux__
     if (this->useDevice) {
         floppy_drive_params fdp;
         if (ioctl(this->fd, FDGETDRVPRM, &fdp)!=0) {
@@ -145,6 +145,8 @@ void disk::update() {
 
         // Make floppy think something changed
         fdp.flags |= FD_DISK_CHANGED_BIT;
+        fdp.checkfreq = 1;
+        
         if (ioctl(this->fd, FDSETDRVPRM, &fdp)!=0) {
             this->setError("Unable to update floppy parameters",strerror(errno), ERR_IO, 2);
             return;
