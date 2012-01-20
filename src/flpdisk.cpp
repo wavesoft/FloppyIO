@@ -35,6 +35,7 @@
 #if defined __linux__
 #include <sys/ioctl.h>
 #include <linux/fd.h>
+#include <linux/fs.h>
 #endif
 
 #include "../includes/flpdisk.h"
