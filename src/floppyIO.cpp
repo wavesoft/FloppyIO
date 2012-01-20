@@ -29,6 +29,7 @@
 //
 
 #include <string.h>
+#include <iostream>
 
 #include "../includes/floppyIO.h"
 
@@ -61,13 +62,15 @@ int floppyIO::waitForSyncIn(unsigned short streamID, int timeout) {
 
     // Get last status of inCB
     this->get_in_cb(&inCB);
+    cout << "CB In is: " << (int)inCB.bDataPresent << "\n";
 
     // Reset dataPresent
     inCB.bDataPresent=0;
     this->set_in_cb(&inCB);
+    cout << "Setting in CB to: " << (int)inCB.bDataPresent << "\n";
 
     // Wait until expired, error, or forever.
-    while (((timeout == 0) || ( time(NULL) <= tExpired)) && (lRet != ERR_NONE)) {
+    while (((timeout == 0) || ( time(NULL) <= tExpired)) && (lRet == ERR_NONE)) {
 
         // Wait until we have data available
         if (inCB.bDataPresent != 0) {
@@ -78,6 +81,8 @@ int floppyIO::waitForSyncIn(unsigned short streamID, int timeout) {
         lRet = this->get_in_cb(&inCB);
 
     }
+
+    cout << "CB In became: " << (int)inCB.bDataPresent << "\n";
 
     // Check for timeout
     if ((timeout != 0) && ( time(NULL) > tExpired)) 
@@ -93,8 +98,10 @@ int floppyIO::waitForSyncOut(unsigned short streamID, int timeout) {
     int lRet = ERR_NONE;
     time_t tExpired = time (NULL) + timeout;
 
+    cout << "Waiting for output dataPresent to go to 0\n";
+
     // Wait until expired, error, or forever.
-    while (((timeout == 0) || ( time(NULL) <= tExpired)) && (lRet != ERR_NONE)) {
+    while (((timeout == 0) || ( time(NULL) <= tExpired)) && (lRet == ERR_NONE)) {
         lRet = this->get_out_cb(&outCB);
 
         // Wait until we have data available
@@ -102,6 +109,8 @@ int floppyIO::waitForSyncOut(unsigned short streamID, int timeout) {
             if (outCB.sID == streamID) break; // If the streamID matches the one specified, quit
         }
     }
+
+    cout << "Output became: " << (int)outCB.bDataPresent << "\n";
 
     // Check for timeout
     if ((timeout != 0) && ( time(NULL) > tExpired)) 
@@ -133,7 +142,12 @@ int floppyIO::send(char * buffer, int size, int streamID) {
     outCB.sID = streamID;
     outCB.bDataPresent = 1;
     outCB.bExtended = this->useExtended ? 1 : 0;
+
+    cout << "Setting bDataPresent on output\n";
     set_out_cb(&outCB);
+
+    get_out_cb(&outCB);
+    cout << "I Verify, it's: " << (int)outCB.bDataPresent << "\n";
 
     // Wait for sync output
     if (this->useSynchronization)
