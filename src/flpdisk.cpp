@@ -43,9 +43,6 @@
 using namespace fpio;
 using namespace std;
 
-// The size of the extended header
-const int SZ_EXTENDED_HEADER = sizeof( extended_header );
-
 
 //
 // FloppyIO Constructor

@@ -93,8 +93,8 @@ namespace fpio {
             unsigned char bEndOfData     : 1;   // 1=That's the last buffer of a streaming sequence
             unsigned char bAborted       : 1;   // 1=The stream was aborted. Pending data are in buffer
             unsigned char bExtended      : 1;   // 1=There is an extended header present in the buffer
-            unsigned char usID           : 3;   // Stream ID (0~7) for multiple stream I/O
-        } flags;
+            unsigned char sID            : 3;   // Stream ID (0~7) for multiple stream I/O
+        };
         unsigned char     value;                // RAW Representation for simplified I/O
     };
 
@@ -108,11 +108,14 @@ namespace fpio {
     //
     union extended_header {
         struct {
-            unsigned int   szBuffer;            // The pending buffer size
+            unsigned int   szLength;            // The pending buffer size
             unsigned char  reserved[12];        // Reserved bytes for future use
-        } data;
+        };
         unsigned char      value[16];           // RAW Representation for simplified I/O
     };
+
+    // The size of the extended header
+    const int SZ_EXTENDED_HEADER = sizeof( extended_header );
 
     //
     // Floppy Disk I/O Class
@@ -155,12 +158,12 @@ namespace fpio {
 
         // Layout
         disk_layout         layout;
+        bool                useExtended; // Use extended version of the protocol
 
     private:
 
         int                 fd;          // File descriptor
         bool                useDevice;   // Use device I/O (ioctl when needed) instead of file I/O
-        bool                useExtended; // Use extended version of the protocol
             
     };
     

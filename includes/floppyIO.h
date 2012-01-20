@@ -32,7 +32,58 @@
 #ifndef FLOPPYIO_H
 #define FLOPPYIO_H
 
+#include <iostream>
+
+#include "flpdisk.h"
 #include "errorbase.h"
 
+using namespace std;
+
+namespace fpio {
+
+    // Additional open flags
+    const int   O_SYNCHRONIZED  = 64;    // Use synchronized I/O
+
+    // Default synchronization timeout
+    const int   SYNC_TIMEOUT    = 4;     // 4 Seconds
+
+    //
+    // FloppyIO Class
+    //
+    class floppyIO:
+        protected flpdisk 
+    {
+    public:
+
+        // Constructor/Destructor
+        floppyIO(const char * file, int flags = 0) ;
+        virtual             ~floppyIO();
+
+        // Send/Receive data from stream
+        int                 send(istream * stream, unsigned short id = 0);
+        int                 receive(ostream * stream, unsigned short id = 0);
+
+        // Send/Receive data without I/O Sync
+        int                 send(string buffer);
+        int                 send(char * buffer, int size, int streamID = 0);
+        int                 receive(string buffer);
+        int                 receive(char * buffer, int size, int streamID = 0);
+
+        // Synchronization
+        int                 waitForSyncIn(unsigned short streamID, int timeout = 0);
+        int                 waitForSyncOut(unsigned short streamID, int timeout = 0);
+
+        // Variables
+        int                 syncTimeout;
+        bool                useSynchronization;
+
+    private:
+
+        ctrlbyte            inCB, outCB;
+        extended_header     inHDR, outHDR;
+
+    };
+
+};
 
 #endif  // FLPDISK_H
