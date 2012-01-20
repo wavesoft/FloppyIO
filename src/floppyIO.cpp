@@ -163,7 +163,7 @@ int floppyIO::receive(char * buffer, int size, int streamID) {
 
     // Data are no more present
     inCB.bDataPresent=0;
-    set_cb_in(&inCB);
+    set_in_cb(&inCB);
 
     // Return the bytes sent
     return lRet;
